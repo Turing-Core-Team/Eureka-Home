@@ -28,7 +28,7 @@ type UseCase interface {
 }
 
 type Mapper interface {
-	RequestToQuery(request contract.URLParams) query.GetOpportunity
+	RequestToQuery(request contract.URLParams)  []query.GetOpportunity
 	EntityToResponse(entity entity.Opportunity) contract.OpportunitiesResponse
 }
 
@@ -73,6 +73,7 @@ func (h Handler) handler(ginCTX *gin.Context) error {
 
 	qry := h.mapper.RequestToQuery(*requestParam)
 
+	for
 	opportunities, errorUseCase := h.useCase.Execute(ginCTX, qry)
 
 	if errorUseCase != nil {
