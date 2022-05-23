@@ -2,5 +2,9 @@ package contract
 
 
 type OpportunitiesResponse struct {
-	//TODO consulting team
+	Opportunities []Opportunity `json:"opportunities"`
+}
+
+type Opportunity struct {
+	//TODO consulting with team
 }

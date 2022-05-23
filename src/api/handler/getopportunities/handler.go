@@ -1,31 +1,35 @@
 package getopportunities
 
 import (
+	"EurekaHome/internal/opportunities/core/entity"
+	"EurekaHome/internal/opportunities/core/query"
+	"EurekaHome/internal/platform/constant"
+	"EurekaHome/internal/platform/log"
+	ErrorResponse "EurekaHome/src/api/handler"
 	"EurekaHome/src/api/handler/getopportunities/contract"
+
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 const (
-	action                   string = "get_opportunities"
-	actionExecuteUseCase     string = "execute_use_case"
-	actionValidateParameters string = "validate_parameters"
-	errorOpportunities       string = "error in the creation handler"
-	entityType               string = "get_opportunities_by_description_and_tags"
-	layer                    string = "handler_information"
+	action                   string          = "get_opportunities"
+	actionExecuteUseCase     string          = "execute_use_case"
+	actionValidateParameters string          = "validate_parameters"
+	errorOpportunities       log.LogsMessage = "error in the creation handler"
+	entityType               string          = "get_opportunities_by_filters"
+	layer                    string          = "handler_information"
 )
 
 type UseCase interface {
-	Execute(ctx context.Context, GetOpportunities query.GetMiniCard) (entity.MiniCard, error)
+	Execute(ctx context.Context, GetOpportunities query.GetOpportunity) (entity.Opportunity, error)
 }
 
 type Mapper interface {
-	RequestToQuery(request contract.URLParams) query.GetMiniCard
-	EntityToResponse(entity entity.MiniCard) contract.InformationResponse
-	QueryStringToBool(queryString string) bool
+	RequestToQuery(request contract.URLParams) query.GetOpportunity
+	EntityToResponse(entity entity.Opportunity) contract.OpportunitiesResponse
 }
 
 type ValidationParams interface {
@@ -33,66 +37,58 @@ type ValidationParams interface {
 }
 
 type Handler struct {
-	useCaseSelector  map[bool]UseCase
+	useCase          UseCase
 	mapper           Mapper
 	validationParams ValidationParams
 }
 
 func NewHandler(
-	useCase map[bool]UseCase,
+	useCase UseCase,
 	mapper Mapper,
 	validationParams ValidationParams,
 ) *Handler {
 	return &Handler{
-		useCaseSelector:  useCase,
+		useCase:          useCase,
 		mapper:           mapper,
 		validationParams: validationParams,
 	}
 }
 
-func (h Handler) Handler(c *gin.Context) {
-	commonsHandlers.ErrorWrapper(h.handler, c)
-}
+func (h Handler) handler(ginCTX *gin.Context) error {
 
-func (h Handler) handler(ginCTX *gin.Context) *commonsApiErrors.APIError {
-	ctx := commonsContext.RequestContext(ginCTX)
-	defer commonsContext.Recorder(ctx).Segment(newrelic.GetSegmentName(layer, action)).End()
-
-	isFullParam := ginCTX.DefaultQuery(isFull, "")
 	requestParam := &contract.URLParams{}
-
 	if err := h.validationParams.BindParamsAndValidation(requestParam, ginCTX.Params); err != nil {
 		message := errorOpportunities.GetMessageWithTagParams(
-			log.NewTagParams(commonsContext.UUID(ctx), layer, actionValidateParameters,
+			log.NewTagParams(layer, actionExecuteUseCase,
 				log.Params{
+					constant.Key:        fmt.Sprintf(`%s_%s_%s_%s`, requestParam.F1, requestParam.F2, requestParam.F3, requestParam.F4),
 					constant.EntityType: entityType,
 				}))
-		commonsContext.Logger(ctx).Error(message, err)
-		return commonsApiErrors.NewBadRequest(err.Error())
+		ginCTX.JSON(ErrorResponse.BadRequest.Value(), ErrorResponse.Response{
+			Status:  ErrorResponse.BadRequest.Value(),
+			Message: message,
+		})
+		return nil
 	}
 
 	qry := h.mapper.RequestToQuery(*requestParam)
-	isFullBool := h.mapper.QueryStringToBool(isFullParam)
 
-	information, errorUseCase := h.useCaseSelector[isFullBool].Execute(ctx, qry)
+	opportunities, errorUseCase := h.useCase.Execute(ginCTX, qry)
 
 	if errorUseCase != nil {
-		switch errorUseCase.(type) {
-		case errorOrchestrator.PartialContent:
-			ginCTX.JSON(http.StatusPartialContent, h.mapper.EntityToResponse(information))
-			return nil
-		default:
-			message := errorOpportunities.GetMessageWithTagParams(
-				log.NewTagParams(commonsContext.UUID(ctx), layer, actionExecuteUseCase,
-					log.Params{
-						constant.Key:        fmt.Sprintf(`%s_%v`, requestParam.SiteID, requestParam.UserID),
-						constant.EntityType: entityType,
-					}))
-			commonsContext.Logger(ctx).Error(message, errorUseCase)
-			return handler.MapperAPIError(errorUseCase)
-		}
+		message := errorOpportunities.GetMessageWithTagParams(
+			log.NewTagParams(layer, actionExecuteUseCase,
+				log.Params{
+					constant.Key:        fmt.Sprintf(`%s_%s_%s_%s`, requestParam.F1, requestParam.F2, requestParam.F3, requestParam.F4),
+					constant.EntityType: entityType,
+				}))
+		ginCTX.JSON(ErrorResponse.InternalError.Value(), ErrorResponse.Response{
+			Status:  ErrorResponse.InternalError.Value(),
+			Message: message,
+		})
+		return nil
 	}
 
-	ginCTX.JSON(http.StatusOK, h.mapper.EntityToResponse(information))
+	ginCTX.JSON(http.StatusOK, h.mapper.EntityToResponse(opportunities))
 	return nil
 }
