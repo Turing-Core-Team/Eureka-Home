@@ -1,6 +1,11 @@
 package query
 
 type GetOpportunity struct {
-	Keys     []string
-	MaxRange int
+	Sheet  string
+	Column []Column
+}
+
+type Column struct {
+	Start string
+	End   string
 }

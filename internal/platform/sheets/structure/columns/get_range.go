@@ -1,0 +1,4 @@
+package columns
+
+
+func GetRange()
