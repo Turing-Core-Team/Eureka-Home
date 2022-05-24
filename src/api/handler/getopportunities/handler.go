@@ -15,13 +15,12 @@ import (
 )
 
 const (
-	action                   string          = "get_opportunities"
 	keyMessageError          string          = "error_in_use_case_get_data"
 	actionExecuteUseCase     string          = "execute_use_case"
 	actionValidateParameters string          = "validate_parameters"
 	errorOpportunities       log.LogsMessage = "error in the creation handler"
 	entityType               string          = "get_opportunities_by_filters"
-	layer                    string          = "handler_information"
+	layer                    string          = "handler_opportunities"
 )
 
 type UseCase interface {
@@ -29,7 +28,7 @@ type UseCase interface {
 }
 
 type Mapper interface {
-	RequestToQuery(request contract.URLParams) []query.GetOpportunity
+	RequestToQuery(request contract.URLParams) ([]query.GetOpportunity, error)
 	EntityToResponse(entity []entity.Opportunity) []contract.OpportunitiesResponse
 }
 
@@ -62,7 +61,13 @@ func (h Handler) handler(ginCTX *gin.Context) {
 		message := errorOpportunities.GetMessageWithTagParams(
 			log.NewTagParams(layer, actionExecuteUseCase,
 				log.Params{
-					constant.Key:        fmt.Sprintf(`%s_%s_%s_%s`, requestParam.FirstFilter, requestParam.SecondFilter, requestParam.ThirdFilter, requestParam.FourthFilter),
+					constant.Key: fmt.Sprintf(
+						`%s_%s_%s_%s`,
+						requestParam.FirstFilter,
+						requestParam.SecondFilter,
+						requestParam.ThirdFilter,
+						requestParam.FourthFilter,
+					),
 					constant.EntityType: entityType,
 				}))
 		ginCTX.JSON(ErrorResponse.BadRequest.Value(), ErrorResponse.Response{
@@ -71,7 +76,27 @@ func (h Handler) handler(ginCTX *gin.Context) {
 		})
 	}
 
-	fullQuery := h.mapper.RequestToQuery(*requestParam)
+	fullQuery, mapperError := h.mapper.RequestToQuery(*requestParam)
+
+	if mapperError != nil { //TODO si fullquery es vacio, sino, es un partial content
+		message := errorOpportunities.GetMessageWithTagParams(
+			log.NewTagParams(layer, actionExecuteUseCase,
+				log.Params{
+					constant.Key: fmt.Sprintf(
+						`%s_%s_%s_%s`,
+						requestParam.FirstFilter,
+						requestParam.SecondFilter,
+						requestParam.ThirdFilter,
+						requestParam.FourthFilter,
+					),
+					constant.EntityType: entityType,
+				}))
+		ginCTX.JSON(ErrorResponse.BadRequest.Value(), ErrorResponse.Response{
+			Status:  ErrorResponse.BadRequest.Value(),
+			Message: message,
+		})
+	}
+
 	opportunities := make([]entity.Opportunity, len(fullQuery))
 	isErrorUseCase := false
 	messageKey := keyMessageError
@@ -82,7 +107,12 @@ func (h Handler) handler(ginCTX *gin.Context) {
 
 		if errorUseCase != nil {
 			isErrorUseCase = true
-			messageKey = fmt.Sprintf(`%s_%s_%s`, messageKey, fullQuery[i].Sheet, fullQuery[i].Column)
+			messageKey = fmt.Sprintf(
+				`%s_%s_%s`,
+				messageKey,
+				fullQuery[i].Sheet,
+				fullQuery[i].Column,
+			)
 		}
 	}
 
