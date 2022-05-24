@@ -16,6 +16,7 @@ import (
 
 const (
 	action                   string          = "get_opportunities"
+	keyMessageError          string          = "error_in_use_case_get_data"
 	actionExecuteUseCase     string          = "execute_use_case"
 	actionValidateParameters string          = "validate_parameters"
 	errorOpportunities       log.LogsMessage = "error in the creation handler"
@@ -28,8 +29,8 @@ type UseCase interface {
 }
 
 type Mapper interface {
-	RequestToQuery(request contract.URLParams)  []query.GetOpportunity
-	EntityToResponse(entity entity.Opportunity) contract.OpportunitiesResponse
+	RequestToQuery(request contract.URLParams) []query.GetOpportunity
+	EntityToResponse(entity []entity.Opportunity) []contract.OpportunitiesResponse
 }
 
 type ValidationParams interface {
@@ -54,42 +55,49 @@ func NewHandler(
 	}
 }
 
-func (h Handler) handler(ginCTX *gin.Context) error {
+func (h Handler) handler(ginCTX *gin.Context) {
 
 	requestParam := &contract.URLParams{}
 	if err := h.validationParams.BindParamsAndValidation(requestParam, ginCTX.Params); err != nil {
 		message := errorOpportunities.GetMessageWithTagParams(
 			log.NewTagParams(layer, actionExecuteUseCase,
 				log.Params{
-					constant.Key:        fmt.Sprintf(`%s_%s_%s_%s`, requestParam.F1, requestParam.F2, requestParam.F3, requestParam.F4),
+					constant.Key:        fmt.Sprintf(`%s_%s_%s_%s`, requestParam.FirstFilter, requestParam.SecondFilter, requestParam.ThirdFilter, requestParam.FourthFilter),
 					constant.EntityType: entityType,
 				}))
 		ginCTX.JSON(ErrorResponse.BadRequest.Value(), ErrorResponse.Response{
 			Status:  ErrorResponse.BadRequest.Value(),
 			Message: message,
 		})
-		return nil
 	}
 
-	qry := h.mapper.RequestToQuery(*requestParam)
+	fullQuery := h.mapper.RequestToQuery(*requestParam)
+	opportunities := make([]entity.Opportunity, len(fullQuery))
+	isErrorUseCase := false
+	messageKey := keyMessageError
 
-	for
-	opportunities, errorUseCase := h.useCase.Execute(ginCTX, qry)
+	for i := range fullQuery {
+		opportunity, errorUseCase := h.useCase.Execute(ginCTX, fullQuery[i])
+		opportunities = append(opportunities, opportunity)
 
-	if errorUseCase != nil {
+		if errorUseCase != nil {
+			isErrorUseCase = true
+			messageKey = fmt.Sprintf(`%s_%s_%s`, messageKey, fullQuery[i].Sheet, fullQuery[i].Column)
+		}
+	}
+
+	if isErrorUseCase {
 		message := errorOpportunities.GetMessageWithTagParams(
 			log.NewTagParams(layer, actionExecuteUseCase,
 				log.Params{
-					constant.Key:        fmt.Sprintf(`%s_%s_%s_%s`, requestParam.F1, requestParam.F2, requestParam.F3, requestParam.F4),
+					constant.Key:        messageKey,
 					constant.EntityType: entityType,
 				}))
 		ginCTX.JSON(ErrorResponse.InternalError.Value(), ErrorResponse.Response{
 			Status:  ErrorResponse.InternalError.Value(),
 			Message: message,
 		})
-		return nil
 	}
 
 	ginCTX.JSON(http.StatusOK, h.mapper.EntityToResponse(opportunities))
-	return nil
 }

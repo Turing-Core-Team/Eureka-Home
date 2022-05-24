@@ -1,8 +1,8 @@
 package contract
 
 type URLParams struct {
-	F1 string `json:"first"`
-	F2 string `json:"second"`
-	F3 string `json:"third"`
-	F4 string `json:"fourth"`
+	FirstFilter  string `json:"first"`
+	SecondFilter string `json:"second"`
+	ThirdFilter  string `json:"third"`
+	FourthFilter string `json:"fourth"`
 }

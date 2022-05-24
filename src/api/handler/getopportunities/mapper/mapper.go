@@ -1,32 +1,49 @@
 package mapper
 
 import (
+	"EurekaHome/internal/opportunities/core/entity"
 	"EurekaHome/internal/opportunities/core/query"
 	"EurekaHome/internal/platform/sheets/structure/columns"
 	"EurekaHome/src/api/handler/getopportunities/contract"
+	"strings"
 )
 
 const (
-	personas string = "personas"
-	proyectos string = "proyectos"
+	person string = "personas"
+	projects string = "proyectos"
 	end string = "500"
 )
 
 type OpportunityMapper struct{}
 
-func (om OpportunityMapper) RequestToQuery(request contract.URLParams) query.GetOpportunity {
-	isFirstPartition := true
-	switch request.F1{
-	case personas:
+func (om OpportunityMapper) RequestToQuery(request contract.URLParams) []query.GetOpportunity {
+	var isFirstPartition bool
+	switch request.FirstFilter {
+	case person:
 		isFirstPartition = true
-	case proyectos:
+	case projects:
 		isFirstPartition = false
 	}
 
-	queryOpportunities := query.GetOpportunity{
-		Sheet: request.F1,
-		Column: columns.GetRange(isFirstPartition),
-	}
+	thirdFilterSplit := strings.Split(request.ThirdFilter, "-")
 
-	return queryOpportunities
+	getOpportunities := make([]query.GetOpportunity, len(thirdFilterSplit))
+
+	for i := range thirdFilterSplit {
+		column, err := columns.GetRange(isFirstPartition, thirdFilterSplit[i])
+		if err != nil{
+			panic(err) // TODO custom error
+		}
+		getOpportunities = append(getOpportunities, query.GetOpportunity{
+			Sheet: request.FirstFilter,
+			Column: column,
+		})
+	}
+	return getOpportunities
+}
+
+
+func (om OpportunityMapper) EntityToResponse(entity []entity.Opportunity) []contract.OpportunitiesResponse {
+
+
 }
