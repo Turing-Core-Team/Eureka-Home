@@ -1,6 +1,9 @@
 package sheets
 
 import (
+	ErrorUseCase "EurekaHome/internal/opportunities/core/error"
+	"EurekaHome/internal/platform/constant"
+	logPlatform "EurekaHome/internal/platform/log"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,7 +17,17 @@ import (
 	"google.golang.org/api/option"
 )
 
-type Client struct {}
+const (
+	actionEmptyResponse           string                  = "empty response"
+	actionUnableToReadClient      string                  = "Unable to read client secret file"
+	actionUnableRetrieve          string                  = "Unable to retrieve data from sheet"
+	actionUnableToParseSecretFile string                  = "Unable to parse client secret file to config"
+	errorRead                     logPlatform.LogsMessage = "error in the use case, when read repository"
+	entityType                    string                  = "read_repository"
+	layer                         string                  = "client_sheets_read"
+)
+
+type Client struct{}
 
 // Request a token from the web, then returns the retrieved token.
 func (c *Client) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
@@ -38,7 +51,19 @@ func (c *Client) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 func (c *Client) tokenFromFile(file string) (*oauth2.Token, error) {
 	f, err := os.Open(file)
 	if err != nil {
-		return nil, err
+		message := errorRead.GetMessageWithTagParams(
+			logPlatform.NewTagParams(layer, actionUnableToReadClient,
+				logPlatform.Params{
+					constant.Key: fmt.Sprintf(
+						`%s`,
+						file,
+					),
+					constant.EntityType: entityType,
+				}))
+		return nil, ErrorUseCase.FailedQueryValue{
+			Message: message,
+			Err:     err,
+		}
 	}
 	defer f.Close()
 	tok := &oauth2.Token{}
@@ -57,34 +82,102 @@ func (c *Client) saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-
-func (c *Client) Read(ctx context.Context, path, spreadsheetId, readRange string) (*sheets.ValueRange, error){
+func (c *Client) Read(ctx context.Context, path, spreadsheetId, readRange string) ([][]interface{}, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		message := errorRead.GetMessageWithTagParams(
+			logPlatform.NewTagParams(layer, actionUnableToReadClient,
+				logPlatform.Params{
+					constant.Key: fmt.Sprintf(
+						`%s_%s_%s`,
+						path,
+						spreadsheetId,
+						readRange,
+					),
+					constant.EntityType: entityType,
+				}))
+		return nil, ErrorUseCase.FailedQueryValue{
+			Message: message,
+			Err:     err,
+		}
 	}
 
 	config, err := google.JWTConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	if err != nil {
-		//TODO return con error personalizado en todos los return
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
+		message := errorRead.GetMessageWithTagParams(
+			logPlatform.NewTagParams(layer, actionUnableToParseSecretFile,
+				logPlatform.Params{
+					constant.Key: fmt.Sprintf(
+						`%s_%s_%s`,
+						path,
+						spreadsheetId,
+						readRange,
+					),
+					constant.EntityType: entityType,
+				}))
+		return nil, ErrorUseCase.FailedQueryValue{
+			Message: message,
+			Err:     err,
+		}
 	}
 
 	client := config.Client(oauth2.NoContext)
 
 	srv, err := sheets.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		log.Fatalf("Unable to retrieve Sheets client: %v", err)
+		message := errorRead.GetMessageWithTagParams(
+			logPlatform.NewTagParams(layer, actionUnableRetrieve,
+				logPlatform.Params{
+					constant.Key: fmt.Sprintf(
+						`%s_%s_%s`,
+						path,
+						spreadsheetId,
+						readRange,
+					),
+					constant.EntityType: entityType,
+				}))
+		return nil, ErrorUseCase.FailedQueryValue{
+			Message: message,
+			Err:     err,
+		}
 	}
 
 	resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve data from sheet: %v", err)
+		message := errorRead.GetMessageWithTagParams(
+			logPlatform.NewTagParams(layer, actionUnableRetrieve,
+				logPlatform.Params{
+					constant.Key: fmt.Sprintf(
+						`%s_%s_%s`,
+						path,
+						spreadsheetId,
+						readRange,
+					),
+					constant.EntityType: entityType,
+				}))
+		return nil, ErrorUseCase.FailedQueryValue{
+			Message: message,
+			Err:     err,
+		}
 	}
 
 	if len(resp.Values) == 0 {
-		return *sheets.ValueRange,
+		message := errorRead.GetMessageWithTagParams(
+			logPlatform.NewTagParams(layer, actionEmptyResponse,
+				logPlatform.Params{
+					constant.Key: fmt.Sprintf(
+						`%s_%s_%s`,
+						path,
+						spreadsheetId,
+						readRange,
+					),
+					constant.EntityType: entityType,
+				}))
+		return nil, ErrorUseCase.FailedQueryValue{
+			Message: message,
+			Err:     err,
+		}
 	} else {
-		return resp, nil
+		return resp.Values, nil
 	}
 }
