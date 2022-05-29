@@ -4,7 +4,6 @@ package config
 import (
 	"EurekaHome/internal/platform/constant"
 	"EurekaHome/internal/platform/environment"
-	"EurekaHome/internal/platform/sheets"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"log"
@@ -79,6 +78,9 @@ func (c *Config) Port() string {
 	return ":" + c.envConfig.Port
 }
 
-func (c *Config) SheetsConfig() sheets.Client {
-	return c.envConfig.SheetsConfig
+/*
+func (c *Config) OpportunitiesSheetsClient() sheets.Client {
+	return c.envConfig.OpportunitiesSheetsClient
 }
+
+ */

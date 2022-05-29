@@ -4,10 +4,8 @@ import (
 	useCaseOpportunities "EurekaHome/internal/opportunities/core/usecase/getopportunity"
 	RepositoryRead "EurekaHome/internal/opportunities/infrastructure/repository/sheets/opportunity"
 	RepositoryReadMapper "EurekaHome/internal/opportunities/infrastructure/repository/sheets/opportunity/mapper"
-	"EurekaHome/internal/platform/constant"
 	platformParams "EurekaHome/internal/platform/params"
 	"EurekaHome/internal/platform/sheets"
-	"EurekaHome/src/api/app/config"
 	handlerGetOpportunities "EurekaHome/src/api/handler/getopportunities"
 	mapperGetOpportunities "EurekaHome/src/api/handler/getopportunities/mapper"
 )
@@ -17,14 +15,7 @@ type HandlerContainer struct {
 }
 
 func NewWire() HandlerContainer {
-	var sheetsClients sheets.Client
-	switch config.GetConfig().Scope() {
-	case constant.DevScope:
-		sheetsClients = sheets.NewSheetsClientMock()
-	default:
-		sheetsClients = config.GetConfig().OpportunitiesSheetsClient().NewSheetsClient()
-	}
-
+	sheetsClients := sheets.Client{}
 	mapperClient := RepositoryReadMapper.Mapper{}
 	repositoryRead := RepositoryRead.NewRepositoryClient(sheetsClients, mapperClient)
 	useCaseGetOpportunity := useCaseOpportunities.NewUseCase(repositoryRead)

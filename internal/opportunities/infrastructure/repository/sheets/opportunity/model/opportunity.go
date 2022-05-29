@@ -1,7 +1,6 @@
-package contract
+package model
 
-
-type OpportunitiesResponse struct {
+type OpportunityModel struct {
 	Tags            string `json:"tags"`
 	Link            string `json:"link"`
 	Title           string `json:"title"`

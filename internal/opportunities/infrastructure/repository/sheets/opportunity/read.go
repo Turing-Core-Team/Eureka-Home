@@ -21,7 +21,7 @@ const (
 )
 
 type Mapper interface {
-	ModelToDomain([][]interface{}) ([]entity.Opportunity, error)
+	ModelToDomain(item []string) ([]entity.Opportunity, error)
 }
 
 type RepositoryClient struct {

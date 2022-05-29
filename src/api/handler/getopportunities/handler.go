@@ -29,7 +29,7 @@ type UseCase interface {
 
 type Mapper interface {
 	RequestToQuery(request contract.URLParams) ([]query.GetOpportunity, error)
-	EntityToResponse(entity []entity.Opportunity) []contract.OpportunitiesResponse
+	EntityToResponse(entity []entity.Opportunity, fourthFilter string) []contract.OpportunitiesResponse
 }
 
 type ValidationParams interface {
@@ -54,7 +54,7 @@ func NewHandler(
 	}
 }
 
-func (h Handler) handler(ginCTX *gin.Context) {
+func (h Handler) Handler(ginCTX *gin.Context) {
 
 	requestParam := &contract.URLParams{}
 	if err := h.validationParams.BindParamsAndValidation(requestParam, ginCTX.Params); err != nil {
@@ -70,8 +70,8 @@ func (h Handler) handler(ginCTX *gin.Context) {
 					),
 					constant.EntityType: entityType,
 				}))
-		ginCTX.JSON(ErrorResponse.BadRequest.Value(), ErrorResponse.Response{
-			Status:  ErrorResponse.BadRequest.Value(),
+		ginCTX.JSON(http.StatusBadRequest, ErrorResponse.Response{
+			Status:  http.StatusBadRequest,
 			Message: message,
 		})
 	}
@@ -90,8 +90,8 @@ func (h Handler) handler(ginCTX *gin.Context) {
 					),
 					constant.EntityType: entityType,
 				}))
-		ginCTX.JSON(ErrorResponse.BadRequest.Value(), ErrorResponse.Response{
-			Status:  ErrorResponse.BadRequest.Value(),
+		ginCTX.JSON(http.StatusBadRequest, ErrorResponse.Response{
+			Status:  http.StatusBadRequest,
 			Message: message,
 		})
 	}
@@ -126,11 +126,11 @@ func (h Handler) handler(ginCTX *gin.Context) {
 					constant.Key:        messageKey,
 					constant.EntityType: entityType,
 				}))
-		ginCTX.JSON(ErrorResponse.InternalError.Value(), ErrorResponse.Response{
-			Status:  ErrorResponse.InternalError.Value(),
+		ginCTX.JSON(http.StatusInternalServerError, ErrorResponse.Response{
+			Status:  http.StatusInternalServerError,
 			Message: message,
 		})
 	}
 
-	ginCTX.JSON(http.StatusOK, h.mapper.EntityToResponse(opportunities))
+	ginCTX.JSON(http.StatusOK, h.mapper.EntityToResponse(opportunities, requestParam.FourthFilter))
 }

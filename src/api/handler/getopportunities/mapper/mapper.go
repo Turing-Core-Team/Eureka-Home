@@ -34,7 +34,7 @@ func (om OpportunityMapper) RequestToQuery(request contract.URLParams) ([]query.
 		if err != nil {
 			fmt.Println("THERE IS NO VALID EQUIVALENCE FOR ", thirdFilterSplit[i])
 			// TODO report this error as ignored for the search
-		}else{
+		} else {
 			getOpportunities = append(getOpportunities, query.GetOpportunity{
 				Sheet:  request.FirstFilter,
 				Column: column,
@@ -48,6 +48,28 @@ func (om OpportunityMapper) RequestToQuery(request contract.URLParams) ([]query.
 	return getOpportunities, nil
 }
 
-func (om OpportunityMapper) EntityToResponse(entity []entity.Opportunity) []contract.OpportunitiesResponse {
+func (om OpportunityMapper) EntityToResponse(entityOpp []entity.Opportunity, fourthFilter string) []contract.OpportunitiesResponse {
+	/*
+		if fourthFilter != ""{
+			fourthFilterSplit := strings.Split(fourthFilter, "-")
+			fourthFilterSplit
+		}
 
+	*/
+	response := make([]contract.OpportunitiesResponse, len(entityOpp))
+
+	for i := range entityOpp {
+		response = append(response, contract.OpportunitiesResponse{
+			Tags:            entityOpp[i].Tags,
+			Link:            entityOpp[i].Link,
+			Title:           entityOpp[i].Title,
+			Requirements:    entityOpp[i].Requirements,
+			Awards:          entityOpp[i].Awards,
+			Description:     entityOpp[i].Description,
+			PublicationDate: entityOpp[i].PublicationDate,
+			UpdateDate:      entityOpp[i].UpdateDate,
+			DueDate:         entityOpp[i].DueDate,
+		})
+	}
+	return response
 }

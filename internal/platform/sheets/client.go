@@ -82,7 +82,7 @@ func (c *Client) saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func (c *Client) Read(ctx context.Context, path, spreadsheetId, readRange string) ([][]interface{}, error) {
+func (c *Client) Read(ctx context.Context, path, spreadsheetId, readRange string) ([]string, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		message := errorRead.GetMessageWithTagParams(
@@ -178,6 +178,12 @@ func (c *Client) Read(ctx context.Context, path, spreadsheetId, readRange string
 			Err:     err,
 		}
 	} else {
-		return resp.Values, nil
+		response := make([]string, len(resp.Values))
+		for _, row := range resp.Values {
+			for _, col := range row {
+				response = append(response, fmt.Sprintf("%v", col))
+			}
+		}
+		return response, nil
 	}
 }

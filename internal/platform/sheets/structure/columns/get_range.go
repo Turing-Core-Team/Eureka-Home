@@ -40,7 +40,7 @@ func GetRange(isFirstPartition bool, columnName string) (string, error) {
 		case diplomados:
 			return Index[diplomados], nil
 		default:
-			return FindEquivalence(isFirstPartition, columnName)
+			return FindEquivalence(columnName)
 		}
 	} else {
 		switch columnName {
@@ -55,7 +55,7 @@ func GetRange(isFirstPartition bool, columnName string) (string, error) {
 		case ferias:
 			return Index[ferias], nil
 		default:
-			return FindEquivalence(isFirstPartition, columnName)
+			return FindEquivalence(columnName)
 		}
 	}
 }
