@@ -1,4 +1,4 @@
-package execution
+package opportunity
 
 import (
 	"EurekaHome/internal/opportunities/core/entity"

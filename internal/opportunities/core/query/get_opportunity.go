@@ -3,7 +3,8 @@ package query
 import "fmt"
 
 const (
-	end string = "A500"
+	start string = "3"
+	end string = "500"
 )
 
 type GetOpportunity struct {
@@ -15,7 +16,7 @@ func (g GetOpportunity) Value() string{
 	return fmt.Sprintf(
 		`%s!%s:%s`,
 		g.Sheet,
-		g.Column,
-		end,
+		g.Column+start,
+		g.Column+end,
 	)
 }

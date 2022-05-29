@@ -1,11 +1,15 @@
 package dependence
 
 import (
+	useCaseOpportunities "EurekaHome/internal/opportunities/core/usecase/getopportunity"
+	RepositoryRead "EurekaHome/internal/opportunities/infrastructure/repository/sheets/opportunity"
+	RepositoryReadMapper "EurekaHome/internal/opportunities/infrastructure/repository/sheets/opportunity/mapper"
 	"EurekaHome/internal/platform/constant"
+	platformParams "EurekaHome/internal/platform/params"
+	"EurekaHome/internal/platform/sheets"
 	"EurekaHome/src/api/app/config"
 	handlerGetOpportunities "EurekaHome/src/api/handler/getopportunities"
-	sheetsLocal "EurekaHome/internal/platform/sheets"
-	platformParams "EurekaHome/internal/platform/params"
+	mapperGetOpportunities "EurekaHome/src/api/handler/getopportunities/mapper"
 )
 
 type HandlerContainer struct {
@@ -13,69 +17,29 @@ type HandlerContainer struct {
 }
 
 func NewWire() HandlerContainer {
-	conf := config.GetConfig()
-	switch conf.Scope() {
+	var sheetsClients sheets.Client
+	switch config.GetConfig().Scope() {
 	case constant.DevScope:
-		sheetsClient = sheetsLocal.NewSheetsLocalClient()
+		sheetsClients = sheets.NewSheetsClientMock()
 	default:
-		sheetsClient = conf.SheetsConfig().NewSheetsClient()
+		sheetsClients = config.GetConfig().OpportunitiesSheetsClient().NewSheetsClient()
 	}
 
-	repositoryRead := getOpportunitiesRepositoryRead(sheetsClient)
-
-
-	styleMapper := styleDefaultMapper.DefaultMapper{}
-	styleCardConfig := styleCardConfiguration.NewProcessMiniCard(styleByStatementStatus, cardConfigMapper)
-
-	accountService := account.NewService(
-		cardRepositoryRead,
-		cardRepositoryWrite,
-		&repositoryAccount,
-		conf.ProposalURL())
-
-	consolidatorService := consolidator.NewService(
-		repositoryLimit,
-		&repositoryStatements)
-
-	styleService := serviceStyle.NewService(
-		styleCardConfig,
-		styleMapper)
-
-	orchestratorService := orchestrator.NewService(
-		consolidatorService,
-		styleService)
-
+	mapperClient := RepositoryReadMapper.Mapper{}
+	repositoryRead := RepositoryRead.NewRepositoryClient(sheetsClients, mapperClient)
+	useCaseGetOpportunity := useCaseOpportunities.NewUseCase(repositoryRead)
 	return HandlerContainer{
-		GetOpportunitiesHandler: newInformationHandler(
-			getFullUseCaseGetInformation(accountService, orchestratorService, cardRepositoryWrite),
-			getSimpleUseCaseGetInformation(accountService, orchestratorService, cardRepositoryWrite)),
+		GetOpportunitiesHandler: newWireGetOpportunitiesHandler(useCaseGetOpportunity),
 	}
 }
 
-func newOpportunitiesHandler(fullUseCase, simpleUseCase handlerGetInformation.UseCase) handlerGetInformation.Handler {
-	useCaseMap := make(map[bool]handlerGetInformation.UseCase)
-	useCaseMap[true] = fullUseCase
-	useCaseMap[false] = simpleUseCase
+func newWireGetOpportunitiesHandler(useCase handlerGetOpportunities.UseCase) handlerGetOpportunities.Handler {
 
-	return *handlerGetInformation.NewHandler(
-		useCaseMap,
-		mapperGetInformation.InformationMapper{},
+	return *handlerGetOpportunities.NewHandler(
+		useCase,
+		mapperGetOpportunities.OpportunityMapper{},
 		platformParams.NewParamValidation(getParamsValidationDefault()),
 	)
-}
-
-
-func getSimpleUseCaseGetInformation(accountService simpleUseCaseGetInformation.AccountService,
-	orchestratorService simpleUseCaseGetInformation.OrchestratorService,
-	repositoryWrite simpleUseCaseGetInformation.RepositoryWrite) handlerGetInformation.UseCase {
-	return simpleUseCaseGetInformation.NewGetCardInformation(
-		accountService, orchestratorService, repositoryWrite,
-	)
-}
-
-
-func getCardRepositoryRead(kvsCacheClient KVS.Client) account.CardRepositoryRead {
-	return read.NewRepositoryCacheRead(kvsCacheClient, cardRepositoryMapper.Mapper{})
 }
 
 func getParamsValidationDefault() map[string]platformParams.ValidationParams {
@@ -85,4 +49,3 @@ func getParamsValidationDefault() map[string]platformParams.ValidationParams {
 	paramsMap[platformParams.ThirdFilterValidator{}.KeyParam()] = platformParams.ThirdFilterValidator{IsRequired: true}
 	return paramsMap
 }
-

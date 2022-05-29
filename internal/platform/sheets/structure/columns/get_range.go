@@ -15,16 +15,16 @@ const (
 )
 
 var Index = map[string]string{
-	carreras:   "A3",
-	tecnologos: "B3",
-	cursos:     "C3",
-	diplomados: "D3",
+	carreras:   "A",
+	tecnologos: "B",
+	cursos:     "C",
+	diplomados: "D",
 
-	concursos:    "N3",
-	eventos:      "O3",
-	divulgacion:  "P3",
-	financiacion: "Q3",
-	ferias:       "R3",
+	concursos:    "N",
+	eventos:      "O",
+	divulgacion:  "P",
+	financiacion: "Q",
+	ferias:       "R",
 }
 
 func GetRange(isFirstPartition bool, columnName string) (string, error) {

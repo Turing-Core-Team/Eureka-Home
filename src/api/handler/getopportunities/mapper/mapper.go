@@ -5,7 +5,6 @@ import (
 	"EurekaHome/internal/opportunities/core/query"
 	"EurekaHome/internal/platform/sheets/structure/columns"
 	"EurekaHome/src/api/handler/getopportunities/contract"
-	errorMapper "EurekaHome/src/api/handler/getopportunities/error"
 	"fmt"
 	"strings"
 )

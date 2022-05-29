@@ -24,7 +24,7 @@ const (
 )
 
 type UseCase interface {
-	Execute(ctx context.Context, GetOpportunities query.GetOpportunity) (entity.Opportunity, error)
+	Execute(ctx context.Context, GetOpportunities query.GetOpportunity) ([]entity.Opportunity, error)
 }
 
 type Mapper interface {
@@ -77,8 +77,7 @@ func (h Handler) handler(ginCTX *gin.Context) {
 	}
 
 	fullQuery, mapperError := h.mapper.RequestToQuery(*requestParam)
-
-	if mapperError != nil { //TODO si fullquery es vacio, sino, es un partial content
+	if mapperError != nil {
 		message := errorOpportunities.GetMessageWithTagParams(
 			log.NewTagParams(layer, actionExecuteUseCase,
 				log.Params{
@@ -102,8 +101,7 @@ func (h Handler) handler(ginCTX *gin.Context) {
 	messageKey := keyMessageError
 
 	for i := range fullQuery {
-		opportunity, errorUseCase := h.useCase.Execute(ginCTX, fullQuery[i])
-		opportunities = append(opportunities, opportunity)
+		opportunitiesUseCase, errorUseCase := h.useCase.Execute(ginCTX, fullQuery[i])
 
 		if errorUseCase != nil {
 			isErrorUseCase = true
@@ -113,6 +111,11 @@ func (h Handler) handler(ginCTX *gin.Context) {
 				fullQuery[i].Sheet,
 				fullQuery[i].Column,
 			)
+			continue
+		}
+
+		for j := range opportunitiesUseCase{
+			opportunities = append(opportunities, opportunitiesUseCase[j])
 		}
 	}
 

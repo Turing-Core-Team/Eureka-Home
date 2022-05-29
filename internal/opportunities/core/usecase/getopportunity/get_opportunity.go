@@ -18,7 +18,7 @@ const (
 )
 
 type RepositoryRead interface {
-	GetByQuery(ctx context.Context, queryValue string) (entity.Opportunity, error)
+	GetByQuery(ctx context.Context, queryValue string) ([]entity.Opportunity, error)
 }
 
 type UseCase struct {
@@ -29,7 +29,7 @@ func NewUseCase(repositoryRead RepositoryRead) UseCase {
 	return UseCase{repositoryRead: repositoryRead}
 }
 
-func (uc UseCase) Execute(ctx context.Context, getOpportunityQuery query.GetOpportunity) (entity.Opportunity, error) {
+func (uc UseCase) Execute(ctx context.Context, getOpportunityQuery query.GetOpportunity) ([]entity.Opportunity, error) {
 
 	opportunity, err := uc.repositoryRead.GetByQuery(ctx, getOpportunityQuery.Value())
 
@@ -45,7 +45,7 @@ func (uc UseCase) Execute(ctx context.Context, getOpportunityQuery query.GetOppo
 					),
 					constant.EntityType: entityType,
 				}))
-		return entity.Opportunity{}, ErrorUseCase.FailedQueryValue{
+		return nil, ErrorUseCase.FailedQueryValue{
 			Message: message,
 			Err: err,
 		}
