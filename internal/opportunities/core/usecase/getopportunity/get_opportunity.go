@@ -1,7 +1,6 @@
 package getopportunity
 
 import (
-	"EurekaHome/internal/opportunities/core/entity"
 	ErrorUseCase "EurekaHome/internal/opportunities/core/error"
 	"EurekaHome/internal/opportunities/core/query"
 	"EurekaHome/internal/platform/constant"
@@ -18,7 +17,7 @@ const (
 )
 
 type RepositoryRead interface {
-	GetByQuery(ctx context.Context, queryValue string) ([]entity.Opportunity, error)
+	GetByQuery(ctx context.Context, queryValue string) ([]string, error)
 }
 
 type UseCase struct {
@@ -29,7 +28,7 @@ func NewUseCase(repositoryRead RepositoryRead) UseCase {
 	return UseCase{repositoryRead: repositoryRead}
 }
 
-func (uc UseCase) Execute(ctx context.Context, getOpportunityQuery query.GetOpportunity) ([]entity.Opportunity, error) {
+func (uc UseCase) Execute(ctx context.Context, getOpportunityQuery query.GetOpportunity) ([]string, error) {
 
 	opportunity, err := uc.repositoryRead.GetByQuery(ctx, getOpportunityQuery.Value())
 

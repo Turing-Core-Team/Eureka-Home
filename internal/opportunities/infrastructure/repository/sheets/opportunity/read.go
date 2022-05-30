@@ -1,7 +1,6 @@
 package opportunity
 
 import (
-	"EurekaHome/internal/opportunities/core/entity"
 	ErrorUseCase "EurekaHome/internal/opportunities/core/error"
 	"EurekaHome/internal/platform/constant"
 	"EurekaHome/internal/platform/log"
@@ -20,22 +19,18 @@ const (
 	layer                    string          = "use_case_get_opportunities"
 )
 
-type Mapper interface {
-	ModelToDomain(item []string) ([]entity.Opportunity, error)
-}
 
 type RepositoryClient struct {
 	client sheet.Client
-	mapper Mapper
 }
 
-func NewRepositoryClient(client sheet.Client, mapper Mapper) *RepositoryClient {
-	return &RepositoryClient{client: client, mapper: mapper}
+func NewRepositoryClient(client sheet.Client) *RepositoryClient {
+	return &RepositoryClient{client: client}
 }
 
-func (rc RepositoryClient) GetByQuery(ctx context.Context, queryValue string) ([]entity.Opportunity, error) {
+func (rc RepositoryClient) GetByQuery(ctx context.Context, queryValue string) ([]string, error) {
 
-	Item, errReadClient := rc.client.Read(ctx, pathCredentials, spreadsheetID, queryValue)
+	item, errReadClient := rc.client.Read(ctx, pathCredentials, spreadsheetID, queryValue)
 
 	if errReadClient != nil {
 		message := errorReadRepository.GetMessageWithTagParams(
@@ -55,21 +50,5 @@ func (rc RepositoryClient) GetByQuery(ctx context.Context, queryValue string) ([
 		}
 	}
 
-	opportunity, errMapper := rc.mapper.ModelToDomain(Item)
-	if errMapper != nil {
-		message := errorMapperModelToDomain.GetMessageWithTagParams(
-			log.NewTagParams(layer, action,
-				log.Params{
-					constant.Key: fmt.Sprintf(
-						`%s`,
-						Item[0][0],
-					),
-					constant.EntityType: entityType,
-				}))
-		return nil, ErrorUseCase.FailedQueryValue{
-			Message: message,
-			Err:     errMapper,
-		}
-	}
-	return opportunity, nil
+	return item, nil
 }

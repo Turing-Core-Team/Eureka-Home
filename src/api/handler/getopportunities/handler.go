@@ -1,7 +1,6 @@
 package getopportunities
 
 import (
-	"EurekaHome/internal/opportunities/core/entity"
 	"EurekaHome/internal/opportunities/core/query"
 	"EurekaHome/internal/platform/constant"
 	"EurekaHome/internal/platform/log"
@@ -15,21 +14,22 @@ import (
 )
 
 const (
-	keyMessageError          string          = "error_in_use_case_get_data"
-	actionExecuteUseCase     string          = "execute_use_case"
-	actionValidateParameters string          = "validate_parameters"
-	errorOpportunities       log.LogsMessage = "error in the creation handler"
-	entityType               string          = "get_opportunities_by_filters"
-	layer                    string          = "handler_opportunities"
+	keyMessageError           string          = "error_in_use_case_get_data"
+	actionExecuteUseCase      string          = "execute_use_case"
+	actionUnMarshalToResponse string          = "unmarshal_response"
+	actionValidateParameters  string          = "validate_parameters"
+	errorOpportunities        log.LogsMessage = "error in the creation handler"
+	entityType                string          = "get_opportunities_by_filters"
+	layer                     string          = "handler_opportunities"
 )
 
 type UseCase interface {
-	Execute(ctx context.Context, GetOpportunities query.GetOpportunity) ([]entity.Opportunity, error)
+	Execute(ctx context.Context, GetOpportunities query.GetOpportunity) ([]string, error)
 }
 
 type Mapper interface {
 	RequestToQuery(request contract.URLParams) ([]query.GetOpportunity, error)
-	EntityToResponse(entity []entity.Opportunity, fourthFilter string) []contract.OpportunitiesResponse
+	EntityToResponse(entity []string, fourthFilter string) ([]contract.OpportunitiesResponse, error)
 }
 
 type ValidationParams interface {
@@ -75,6 +75,7 @@ func (h Handler) Handler(ginCTX *gin.Context) {
 			Status:  http.StatusBadRequest,
 			Message: message,
 		})
+		return
 	}
 
 	fullQuery, mapperError := h.mapper.RequestToQuery(*requestParam)
@@ -95,9 +96,10 @@ func (h Handler) Handler(ginCTX *gin.Context) {
 			Status:  http.StatusBadRequest,
 			Message: message,
 		})
+		return
 	}
 
-	opportunities := make([]entity.Opportunity, len(fullQuery))
+	opportunities := make([]string, 0)
 	isErrorUseCase := false
 	messageKey := keyMessageError
 
@@ -115,7 +117,7 @@ func (h Handler) Handler(ginCTX *gin.Context) {
 			continue
 		}
 
-		for j := range opportunitiesUseCase{
+		for j := range opportunitiesUseCase {
 			opportunities = append(opportunities, opportunitiesUseCase[j])
 		}
 	}
@@ -131,7 +133,24 @@ func (h Handler) Handler(ginCTX *gin.Context) {
 			Status:  http.StatusInternalServerError,
 			Message: message,
 		})
+		return
 	}
 
-	ginCTX.JSON(http.StatusOK, h.mapper.EntityToResponse(opportunities, requestParam.FourthFilter))
+	response, errorResponse := h.mapper.EntityToResponse(opportunities, requestParam.FourthFilter)
+
+	if errorResponse != nil {
+		message := errorOpportunities.GetMessageWithTagParams(
+			log.NewTagParams(layer, actionUnMarshalToResponse,
+				log.Params{
+					constant.Key:        messageKey,
+					constant.EntityType: entityType,
+				}))
+		ginCTX.JSON(http.StatusPartialContent, ErrorResponse.Response{
+			Status:  http.StatusPartialContent,
+			Message: message,
+		})
+		return
+	}
+
+	ginCTX.JSON(http.StatusOK, response)
 }

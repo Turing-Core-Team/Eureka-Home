@@ -3,7 +3,6 @@ package dependence
 import (
 	useCaseOpportunities "EurekaHome/internal/opportunities/core/usecase/getopportunity"
 	RepositoryRead "EurekaHome/internal/opportunities/infrastructure/repository/sheets/opportunity"
-	RepositoryReadMapper "EurekaHome/internal/opportunities/infrastructure/repository/sheets/opportunity/mapper"
 	platformParams "EurekaHome/internal/platform/params"
 	"EurekaHome/internal/platform/sheets"
 	handlerGetOpportunities "EurekaHome/src/api/handler/getopportunities"
@@ -19,8 +18,7 @@ type HandlerContainer struct {
 
 func NewWire() HandlerContainer {
 	sheetsClients := sheets.Client{}
-	mapperClient := RepositoryReadMapper.Mapper{}
-	repositoryRead := RepositoryRead.NewRepositoryClient(sheetsClients, mapperClient)
+	repositoryRead := RepositoryRead.NewRepositoryClient(sheetsClients)
 	useCaseGetOpportunity := useCaseOpportunities.NewUseCase(repositoryRead)
 	return HandlerContainer{
 		PingHandler: newWirePingHandler(),

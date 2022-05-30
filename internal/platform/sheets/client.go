@@ -178,7 +178,7 @@ func (c *Client) Read(ctx context.Context, path, spreadsheetId, readRange string
 			Err:     err,
 		}
 	} else {
-		response := make([]string, len(resp.Values))
+		response := make([]string, 0)
 		for _, row := range resp.Values {
 			for _, col := range row {
 				response = append(response, fmt.Sprintf("%v", col))
