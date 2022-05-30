@@ -20,6 +20,7 @@ func NewParamValidation(validationParams map[string]ValidationParams) ParamValid
 }
 
 func (dp ParamValidation) BindParamsAndValidation(obj interface{}, params gin.Params) error {
+
 	paramsMap := make(map[string]string)
 	for key, valueParam := range dp.ValidationParams {
 		param, _ := params.Get(key)
@@ -28,6 +29,7 @@ func (dp ParamValidation) BindParamsAndValidation(obj interface{}, params gin.Pa
 		}
 		paramsMap[key] = param
 	}
+
 
 	jsonStr, err := json.Marshal(paramsMap)
 	if err != nil {

@@ -16,5 +16,5 @@ func (tfv ThirdFilterValidator) IsValid(value string) error {
 }
 
 func (tfv ThirdFilterValidator) KeyParam() string {
-	return "Third Filter"
+	return "third"
 }

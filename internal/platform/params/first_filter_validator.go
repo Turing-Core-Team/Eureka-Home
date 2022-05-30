@@ -3,8 +3,8 @@ package params
 import "fmt"
 
 const (
-	person string = "person"
-	project string = "proyecto"
+	person string = "personas"
+	project string = "proyectos"
 )
 
 type FirstFilterValidator struct {
@@ -16,7 +16,7 @@ func (ffv FirstFilterValidator) IsValid(value string) error {
 		return fmt.Errorf("is required")
 	}
 
-	if value != person || value != project {
+	if value != person && value != project {
 		return fmt.Errorf("bad request values first filter")
 	}
 
@@ -24,6 +24,6 @@ func (ffv FirstFilterValidator) IsValid(value string) error {
 }
 
 func (ffv FirstFilterValidator) KeyParam() string {
-	return "First Filter"
+	return "first"
 }
 

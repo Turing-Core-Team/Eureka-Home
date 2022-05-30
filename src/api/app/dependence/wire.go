@@ -8,10 +8,13 @@ import (
 	"EurekaHome/internal/platform/sheets"
 	handlerGetOpportunities "EurekaHome/src/api/handler/getopportunities"
 	mapperGetOpportunities "EurekaHome/src/api/handler/getopportunities/mapper"
+	handlerPing "EurekaHome/src/api/handler/ping"
+	"fmt"
 )
 
 type HandlerContainer struct {
 	GetOpportunitiesHandler handlerGetOpportunities.Handler
+	PingHandler handlerPing.Handler
 }
 
 func NewWire() HandlerContainer {
@@ -20,12 +23,17 @@ func NewWire() HandlerContainer {
 	repositoryRead := RepositoryRead.NewRepositoryClient(sheetsClients, mapperClient)
 	useCaseGetOpportunity := useCaseOpportunities.NewUseCase(repositoryRead)
 	return HandlerContainer{
+		PingHandler: newWirePingHandler(),
 		GetOpportunitiesHandler: newWireGetOpportunitiesHandler(useCaseGetOpportunity),
 	}
 }
 
-func newWireGetOpportunitiesHandler(useCase handlerGetOpportunities.UseCase) handlerGetOpportunities.Handler {
+func newWirePingHandler() handlerPing.Handler{
+	return *handlerPing.NewHandler()
+}
 
+func newWireGetOpportunitiesHandler(useCase handlerGetOpportunities.UseCase) handlerGetOpportunities.Handler {
+	fmt.Println("WIRE")
 	return *handlerGetOpportunities.NewHandler(
 		useCase,
 		mapperGetOpportunities.OpportunityMapper{},

@@ -27,18 +27,22 @@ func (om OpportunityMapper) RequestToQuery(request contract.URLParams) ([]query.
 
 	thirdFilterSplit := strings.Split(request.ThirdFilter, "-")
 
-	getOpportunities := make([]query.GetOpportunity, len(thirdFilterSplit))
+	getOpportunities := make([]query.GetOpportunity, len(thirdFilterSplit)-1)
 
 	for i := range thirdFilterSplit {
-		column, err := columns.GetRange(isFirstPartition, thirdFilterSplit[i])
-		if err != nil {
-			fmt.Println("THERE IS NO VALID EQUIVALENCE FOR ", thirdFilterSplit[i])
-			// TODO report this error as ignored for the search
-		} else {
-			getOpportunities = append(getOpportunities, query.GetOpportunity{
-				Sheet:  request.FirstFilter,
-				Column: column,
-			})
+		secondFilterSplit := strings.Split(request.SecondFilter, "-")
+		for j := range secondFilterSplit {
+			column, err := columns.GetRange(isFirstPartition, secondFilterSplit[j])
+			if err != nil && column != ""{
+				fmt.Println("THERE IS NO VALID EQUIVALENCE FOR ", secondFilterSplit[i])
+				// TODO report this error as ignored for the search
+			} else {
+
+				getOpportunities = append(getOpportunities, query.GetOpportunity{
+					Sheet:  request.FirstFilter,
+					Column: column,
+				})
+			}
 		}
 	}
 

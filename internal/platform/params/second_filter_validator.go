@@ -15,5 +15,5 @@ func (sfv SecondFilterValidator) IsValid(value string) error {
 }
 
 func (sfv SecondFilterValidator) KeyParam() string {
-	return "Second Filter"
+	return "second"
 }

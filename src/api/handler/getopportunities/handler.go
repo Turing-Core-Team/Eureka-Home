@@ -57,9 +57,10 @@ func NewHandler(
 func (h Handler) Handler(ginCTX *gin.Context) {
 
 	requestParam := &contract.URLParams{}
+
 	if err := h.validationParams.BindParamsAndValidation(requestParam, ginCTX.Params); err != nil {
 		message := errorOpportunities.GetMessageWithTagParams(
-			log.NewTagParams(layer, actionExecuteUseCase,
+			log.NewTagParams(layer, actionValidateParameters,
 				log.Params{
 					constant.Key: fmt.Sprintf(
 						`%s_%s_%s_%s`,
