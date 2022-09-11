@@ -29,7 +29,7 @@ type UseCase interface {
 
 type Mapper interface {
 	RequestToQuery(request contract.URLParams) ([]query.GetOpportunity, error)
-	EntityToResponse(entity []string, fourthFilter string) ([]contract.OpportunitiesResponse, error)
+	EntityToResponse(entity []string, extraFilter string) ([]contract.OpportunitiesResponse, error)
 }
 
 type ValidationParams interface {
@@ -64,10 +64,10 @@ func (h Handler) Handler(ginCTX *gin.Context) {
 				log.Params{
 					constant.Key: fmt.Sprintf(
 						`%s_%s_%s_%s`,
-						requestParam.FirstFilter,
-						requestParam.SecondFilter,
-						requestParam.ThirdFilter,
-						requestParam.FourthFilter,
+						requestParam.WhoFilter,
+						requestParam.TypeFilter,
+						requestParam.AreaFilter,
+						requestParam.ExtraFilter,
 					),
 					constant.EntityType: entityType,
 				}))
@@ -85,10 +85,10 @@ func (h Handler) Handler(ginCTX *gin.Context) {
 				log.Params{
 					constant.Key: fmt.Sprintf(
 						`%s_%s_%s_%s`,
-						requestParam.FirstFilter,
-						requestParam.SecondFilter,
-						requestParam.ThirdFilter,
-						requestParam.FourthFilter,
+						requestParam.WhoFilter,
+						requestParam.TypeFilter,
+						requestParam.AreaFilter,
+						requestParam.ExtraFilter,
 					),
 					constant.EntityType: entityType,
 				}))
@@ -136,7 +136,7 @@ func (h Handler) Handler(ginCTX *gin.Context) {
 		return
 	}
 
-	response, errorResponse := h.mapper.EntityToResponse(opportunities, requestParam.FourthFilter)
+	response, errorResponse := h.mapper.EntityToResponse(opportunities, requestParam.ExtraFilter)
 
 	if errorResponse != nil {
 		message := errorOpportunities.GetMessageWithTagParams(

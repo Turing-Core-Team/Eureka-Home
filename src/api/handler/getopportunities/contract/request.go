@@ -1,8 +1,8 @@
 package contract
 
 type URLParams struct {
-	FirstFilter  string `json:"first" binding:"required"`
-	SecondFilter string `json:"second" binding:"required"`
-	ThirdFilter  string `json:"third" binding:"required"`
-	FourthFilter string `json:"fourth"`
+	WhoFilter   string `json:"who" binding:"required"`
+	TypeFilter  string `json:"type" binding:"required"`
+	AreaFilter  string `json:"area" binding:"required"`
+	ExtraFilter string `json:"extra"`
 }

@@ -18,7 +18,7 @@ The overall project context map
 
 ### Opportunities
 
-- **GET** [/eureka/v1.0/opportunities/filters/first/second/third/fourth"]()
+- **GET** [/eureka/v1.0/opportunities/filters/who/type/area/extra"]()
 
 #### request
 

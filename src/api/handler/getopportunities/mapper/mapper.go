@@ -18,29 +18,29 @@ const (
 type OpportunityMapper struct{}
 
 func (om OpportunityMapper) RequestToQuery(request contract.URLParams) ([]query.GetOpportunity, error) {
-	var isFirstPartition bool
-	switch request.FirstFilter {
+	var isWhoPartition bool
+	switch request.WhoFilter {
 	case person:
-		isFirstPartition = true
+		isWhoPartition = true
 	case projects:
-		isFirstPartition = false
+		isWhoPartition = false
 	}
 
-	thirdFilterSplit := strings.Split(request.ThirdFilter, "-")
-	secondFilterSplit := strings.Split(request.SecondFilter, "-")
+	areaFilterSplit := strings.Split(request.AreaFilter, "-")
+	typeFilterSplit := strings.Split(request.TypeFilter, "-")
 
 	getOpportunities := make([]query.GetOpportunity, 0)
 
-	for i := range thirdFilterSplit {
-		for j := range secondFilterSplit {
-			column, err := columns.GetRange(isFirstPartition, secondFilterSplit[j])
+	for i := range areaFilterSplit {
+		for j := range typeFilterSplit {
+			column, err := columns.GetRange(isWhoPartition, typeFilterSplit[j])
 			if err != nil && column != "" {
-				fmt.Println("THERE IS NO VALID EQUIVALENCE FOR ", secondFilterSplit[i])
+				fmt.Println("THERE IS NO VALID EQUIVALENCE FOR ", typeFilterSplit[i])
 				// TODO report this error as ignored for the search
 			} else {
 
 				getOpportunities = append(getOpportunities, query.GetOpportunity{
-					Sheet:  thirdFilterSplit[i],
+					Sheet:  areaFilterSplit[i],
 					Column: column,
 				})
 			}
@@ -54,11 +54,11 @@ func (om OpportunityMapper) RequestToQuery(request contract.URLParams) ([]query.
 	return getOpportunities, nil
 }
 
-func (om OpportunityMapper) EntityToResponse(entityOpp []string, fourthFilter string) ([]contract.OpportunitiesResponse, error){
+func (om OpportunityMapper) EntityToResponse(entityOpp []string, extraFilter string) ([]contract.OpportunitiesResponse, error) {
 	/*
-		if fourthFilter != ""{
-			fourthFilterSplit := strings.Split(fourthFilter, "-")
-			fourthFilterSplit
+		if extraFilter != ""{
+			extraFilterSplit := strings.Split(extraFilter, "-")
+			extraFilterSplit
 		}
 
 	*/
@@ -68,19 +68,19 @@ func (om OpportunityMapper) EntityToResponse(entityOpp []string, fourthFilter st
 
 		out := &contract.OpportunitiesResponse{}
 		err := json.Unmarshal([]byte(entityOpp[i]), out)
-		if err != nil{
+		if err != nil {
 			return nil, errors.New("error unmarshal json opportunity from sheets")
 		}
 		entityResponse := contract.OpportunitiesResponse{
-			Tags: out.Tags,
-			Link: out.Link,
-			Title: out.Title,
-			Requirements: out.Requirements,
-			Awards: out.Awards,
-			Description: out.Description,
+			Tags:            out.Tags,
+			Link:            out.Link,
+			Title:           out.Title,
+			Requirements:    out.Requirements,
+			Awards:          out.Awards,
+			Description:     out.Description,
 			PublicationDate: out.PublicationDate,
-			UpdateDate: out.UpdateDate,
-			DueDate: out.DueDate,
+			UpdateDate:      out.UpdateDate,
+			DueDate:         out.DueDate,
 		}
 		response = append(response, entityResponse)
 	}

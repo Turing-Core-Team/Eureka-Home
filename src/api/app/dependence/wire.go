@@ -13,7 +13,7 @@ import (
 
 type HandlerContainer struct {
 	GetOpportunitiesHandler handlerGetOpportunities.Handler
-	PingHandler handlerPing.Handler
+	PingHandler             handlerPing.Handler
 }
 
 func NewWire() HandlerContainer {
@@ -21,12 +21,12 @@ func NewWire() HandlerContainer {
 	repositoryRead := RepositoryRead.NewRepositoryClient(sheetsClients)
 	useCaseGetOpportunity := useCaseOpportunities.NewUseCase(repositoryRead)
 	return HandlerContainer{
-		PingHandler: newWirePingHandler(),
+		PingHandler:             newWirePingHandler(),
 		GetOpportunitiesHandler: newWireGetOpportunitiesHandler(useCaseGetOpportunity),
 	}
 }
 
-func newWirePingHandler() handlerPing.Handler{
+func newWirePingHandler() handlerPing.Handler {
 	return *handlerPing.NewHandler()
 }
 
@@ -41,8 +41,8 @@ func newWireGetOpportunitiesHandler(useCase handlerGetOpportunities.UseCase) han
 
 func getParamsValidationDefault() map[string]platformParams.ValidationParams {
 	paramsMap := make(map[string]platformParams.ValidationParams)
-	paramsMap[platformParams.FirstFilterValidator{}.KeyParam()] = platformParams.FirstFilterValidator{IsRequired: true}
-	paramsMap[platformParams.SecondFilterValidator{}.KeyParam()] = platformParams.SecondFilterValidator{IsRequired: true}
-	paramsMap[platformParams.ThirdFilterValidator{}.KeyParam()] = platformParams.ThirdFilterValidator{IsRequired: true}
+	paramsMap[platformParams.WhoFilterValidator{}.KeyParam()] = platformParams.WhoFilterValidator{IsRequired: true}
+	paramsMap[platformParams.TypeFilterValidator{}.KeyParam()] = platformParams.TypeFilterValidator{IsRequired: true}
+	paramsMap[platformParams.AreaFilterValidator{}.KeyParam()] = platformParams.AreaFilterValidator{IsRequired: true}
 	return paramsMap
 }

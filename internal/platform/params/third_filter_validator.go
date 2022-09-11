@@ -2,12 +2,11 @@ package params
 
 import "fmt"
 
-
-type ThirdFilterValidator struct {
+type AreaFilterValidator struct {
 	IsRequired bool
 }
 
-func (tfv ThirdFilterValidator) IsValid(value string) error {
+func (tfv AreaFilterValidator) IsValid(value string) error {
 	if tfv.IsRequired && value == "" {
 		return fmt.Errorf("is required")
 	}
@@ -15,6 +14,6 @@ func (tfv ThirdFilterValidator) IsValid(value string) error {
 	return nil
 }
 
-func (tfv ThirdFilterValidator) KeyParam() string {
-	return "third"
+func (tfv AreaFilterValidator) KeyParam() string {
+	return "area"
 }

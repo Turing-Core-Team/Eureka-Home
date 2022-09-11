@@ -2,11 +2,11 @@ package params
 
 import "fmt"
 
-type SecondFilterValidator struct {
+type TypeFilterValidator struct {
 	IsRequired bool
 }
 
-func (sfv SecondFilterValidator) IsValid(value string) error {
+func (sfv TypeFilterValidator) IsValid(value string) error {
 	if sfv.IsRequired && value == "" {
 		return fmt.Errorf("is required")
 	}
@@ -14,6 +14,6 @@ func (sfv SecondFilterValidator) IsValid(value string) error {
 	return nil
 }
 
-func (sfv SecondFilterValidator) KeyParam() string {
-	return "second"
+func (sfv TypeFilterValidator) KeyParam() string {
+	return "type"
 }

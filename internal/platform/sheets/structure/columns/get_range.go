@@ -27,9 +27,9 @@ var Index = map[string]string{
 	ferias:       "R",
 }
 
-func GetRange(isFirstPartition bool, columnName string) (string, error) {
+func GetRange(isWhoPartition bool, columnName string) (string, error) {
 	columnName = strings.ToLower(columnName)
-	if isFirstPartition {
+	if isWhoPartition {
 		switch columnName {
 		case carreras:
 			return Index[carreras], nil
