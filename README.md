@@ -11,3 +11,25 @@ It is divided into three modules that work together
 ## Context Map
 
 The overall project context map
+
+![ContextMap](https://raw.githubusercontent.com/Turing-Core-Team/StaticEurekaFiles/main/images/design_eureka_2.0-Context%20Map.drawio.png)
+
+## Local EndPoints
+
+### Opportunities
+
+- **GET** [/eureka/v1.0/opportunities/filters/first/second/third/fourth"]()
+
+#### request
+
+```json
+
+{
+  
+}
+
+```
+
+## Filters
+
+Filters are the way offers are searched through query parameters
