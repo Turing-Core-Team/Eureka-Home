@@ -38,7 +38,6 @@ func (om OpportunityMapper) RequestToQuery(request contract.URLParams) ([]query.
 				fmt.Println("THERE IS NO VALID EQUIVALENCE FOR ", typeFilterSplit[i])
 				// TODO report this error as ignored for the search
 			} else {
-
 				getOpportunities = append(getOpportunities, query.GetOpportunity{
 					Sheet:  areaFilterSplit[i],
 					Column: column,
