@@ -1,6 +1,7 @@
 # Eureka Home
 
 ![technology Go](https://img.shields.io/badge/technology-go-blue.svg)
+[![License](https://img.shields.io/github/license/hprose/hprose-golang.svg)](http://opensource.org/licenses/MIT)
 
 The Eureka project aims to organize and publish academic offers.
 It is divided into three modules that work together
@@ -57,6 +58,9 @@ The overall project context map
 ]
 ```
 
+
+
+
 ## Filters
 
 Filters are the way offers are searched through query parameters
@@ -99,3 +103,7 @@ Multiple types can be received by separating them by "-"
 ```
 
 - The fourth filter (Extra), is optional and provides additional information for the order of the opportunities
+
+## License
+
+This project is licensed under the terms of the [MIT license](https://github.com/Turing-Core-Team/Eureka-Home/blob/main/LICENSE).
